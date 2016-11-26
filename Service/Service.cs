@@ -8,7 +8,7 @@ namespace Service
     {
         private int[,] _matrix;
 
-        private Dictionary<string, List<int>> _matrixDic;
+        private Dictionary<string, List<int>> _mainMatrixDic;
 
         private List<List<int>> opimal;
 
@@ -19,12 +19,12 @@ namespace Service
         {
             _optimalSequencesResult = new List<List<string>>();
             _matrix = new int[,] { { 2, 3, 4 }, { 5, 2, 4 }, { 1, 1, 2 }, { 3, 4, 2 }, { 3, 5, 2 } };
-            _matrixDic = new Dictionary<string, List<int>>();
-            _matrixDic.Add("1", new List<int>() { 2, 3, 4 });
-            _matrixDic.Add("2", new List<int>() { 5, 2, 4 });
-            _matrixDic.Add("3", new List<int>() { 1, 1, 2 });
-            _matrixDic.Add("4", new List<int>() { 3, 4, 2 });
-            _matrixDic.Add("5", new List<int>() { 3, 5, 2 });
+            _mainMatrixDic = new Dictionary<string, List<int>>();
+            _mainMatrixDic.Add("1", new List<int>() { 2, 3, 4 });
+            _mainMatrixDic.Add("2", new List<int>() { 5, 2, 4 });
+            _mainMatrixDic.Add("3", new List<int>() { 1, 1, 2 });
+            _mainMatrixDic.Add("4", new List<int>() { 3, 4, 2 });
+            _mainMatrixDic.Add("5", new List<int>() { 3, 5, 2 });
 
 
             var list = new List<int>() { 0 };
@@ -37,29 +37,45 @@ namespace Service
             CalculateD1(null,new List<string>(), new Dictionary<string, List<int>>() /*_matrixDic*/);
         }
 
-        private void CalculateD1(string excludedColumn,List<string> optimalSequence, Dictionary<string, List<int>> tempMatrixDic)
+        private void CalculateD1(string excludedColumn,List<string> optimalSequence, Dictionary<string, List<int>> matrixDic)
         {
             if (excludedColumn != null)
             {
                 optimalSequence.Add(excludedColumn);
-                tempMatrixDic.Remove(excludedColumn);
+                matrixDic.Remove(excludedColumn);
             }
             else
             {
                 //Problem if not first
-                foreach(var matrDic in _matrixDic)
+                foreach(var matrDic in _mainMatrixDic)
                 {
-                    tempMatrixDic.Add(matrDic.Key, matrDic.Value);
+                    matrixDic.Add(matrDic.Key, matrDic.Value);
                 }
+            }
+
+            //optimalSequence on this step
+            var tempOptimalSequenceStep = new List<string>();
+
+            foreach(var seq in optimalSequence)
+            {
+                tempOptimalSequenceStep.Add(seq);
+            }
+
+            //tempMatrixDic on this step
+            var tempMatrixDic = new Dictionary<string, List<int>>();
+
+            foreach (var seq in matrixDic)
+            {
+                tempMatrixDic.Add(seq.Key,seq.Value);
             }
 
             Dictionary<string, int> resultSequenceS1 = new Dictionary<string, int>();
 
-            foreach (var elem in tempMatrixDic)
+            foreach (var elem in matrixDic)
             {
-                var da = CalculateDa1(tempMatrixDic, elem.Key);
-                var db = CalculateDb1(tempMatrixDic, elem.Key);
-                var dc = CalculateDc1(tempMatrixDic, elem.Key);
+                var da = CalculateDa1(matrixDic, elem.Key);
+                var db = CalculateDb1(matrixDic, elem.Key);
+                var dc = CalculateDc1(matrixDic, elem.Key);
                 var max = Math.Max(da, db);
                 resultSequenceS1.Add(elem.Key, Math.Max(max, dc));
             }
@@ -82,14 +98,17 @@ namespace Service
                 }
             }
 
-            if (tempMatrixDic.Count == 0)
+            if (matrixDic.Count == 0)
             {
                 _optimalSequencesResult.Add(optimalSequence);
             }
 
             foreach (var optimalElement in optimalResultElementsFromSequence)
             {
-                CalculateD1(optimalElement.Key, optimalSequence, tempMatrixDic);
+                CalculateD1(optimalElement.Key, optimalSequence, matrixDic);
+
+                matrixDic = tempMatrixDic;
+                optimalSequence = tempOptimalSequenceStep;
             }
 
         }
@@ -106,8 +125,6 @@ namespace Service
                     sum += elem.Value.First();
                 }
             }
-
-
 
             foreach (var elem in tempMatrixDic)
             {
