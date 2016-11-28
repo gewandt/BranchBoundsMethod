@@ -7,50 +7,58 @@ namespace Service
     public class Algoritm
     {
         private Dictionary<string, List<int>> _mainMatrixDic;
+        private AlgoritmModel _rootModel;
+        private List<List<string>> _optimalSequencesResult;
 
         public Algoritm(Dictionary<string, List<int>> mainMatrixDic)
         {
+            _optimalSequencesResult = new List<List<string>>();
             _mainMatrixDic = mainMatrixDic;
         }
 
-        public List<List<string>> GetOptimalResultSequences()
+
+        public Tuple<AlgoritmModel,List<List<string>>> GetOptimalResultSequences()
         {
             var optimalSequence = new List<string>();
             var matrixDic = GetTempMatrixDic(_mainMatrixDic);
-            return OptimalResultSequencesCalculation(optimalSequence, matrixDic);
+            _rootModel = new AlgoritmModel() { OptimalSequence = optimalSequence, MatrixDic = matrixDic };
+            OptimalResultSequencesCalculation(_rootModel);
+            return Tuple.Create(_rootModel, _optimalSequencesResult); 
         }
 
-        private List<List<string>> OptimalResultSequencesCalculation(List<string> optimalSequence, Dictionary<string, List<int>> matrixDic, string excludedColumn = null)
+        private void OptimalResultSequencesCalculation(AlgoritmModel algModel)
         {
-            var _optimalSequencesResult = new List<List<string>>();
+            algModel.SequenceDaDbDc = CalculateDSequence(algModel.MatrixDic);
+            algModel.OptimalResultElementsFromSequence = GetOptimalValuesFromDSequence(algModel.SequenceDaDbDc);
 
-            if (excludedColumn != null)
+            foreach (var optimalElement in algModel.OptimalResultElementsFromSequence)
             {
-                optimalSequence.Add(excludedColumn);
-                matrixDic.Remove(excludedColumn);
+                algModel.OptimalSequence.Add(optimalElement.Key);
+
+                var newAlgModel = new AlgoritmModel() { OptimalSequence = new List<string>(), MatrixDic = new Dictionary<string, List<int>>(),OptimalSequencesResult = new List<List<string>>() };
+                if(algModel.InnerAlgoritmModel == null)
+                {
+                    algModel.InnerAlgoritmModel = new List<AlgoritmModel>();
+                }
+                newAlgModel.OptimalSequencesResult.Add(algModel.OptimalSequence);
+                newAlgModel.MatrixDic = GetTempMatrixDic(algModel.MatrixDic);
+                newAlgModel.MatrixDic.Remove(optimalElement.Key);
+                newAlgModel.OptimalSequence = GetTempOptimalSequence(algModel.OptimalSequence);
+
+                if (newAlgModel.MatrixDic.Count == 0)
+                {
+                    _optimalSequencesResult.Add(newAlgModel.OptimalSequence);
+                    return;
+                }
+
+                algModel.InnerAlgoritmModel.Add(newAlgModel);
+                OptimalResultSequencesCalculation(algModel.InnerAlgoritmModel.Last());
+                algModel.OptimalSequence.Remove(algModel.OptimalSequence.Last());
             }
 
-            var tempOptimalSequence = GetTempOptimalSequence(optimalSequence);
-            var tempMatrixDic = GetTempMatrixDic(matrixDic);
-
-            var sequenceDaDbDc = CalculateDSequence(matrixDic);
-            var optimalResultElementsFromSequence = GetOptimalValuesFromDSequence(sequenceDaDbDc);
-
-            if (matrixDic.Count == 0)
-            {
-                _optimalSequencesResult.Add(optimalSequence);
-            }
-
-            foreach (var optimalElement in optimalResultElementsFromSequence)
-            {
-                var newOptimalSequencesResult = OptimalResultSequencesCalculation(optimalSequence, matrixDic, optimalElement.Key);
-                _optimalSequencesResult.AddRange(newOptimalSequencesResult);
-                matrixDic = tempMatrixDic;
-                optimalSequence = tempOptimalSequence;
-            }
-
-            return _optimalSequencesResult;
         }
+
+
 
         private List<string> GetTempOptimalSequence(List<string> optimalSequence)
         {
@@ -71,6 +79,8 @@ namespace Service
             }
             return tempMatrixDic;
         }
+
+
 
         private Dictionary<string, int> CalculateDSequence(Dictionary<string, List<int>> matrixDic)
         {
@@ -162,6 +172,8 @@ namespace Service
 
             return sum + c0;
         }
+
+
 
         private Dictionary<string, int> GetOptimalValuesFromDSequence(Dictionary<string, int> sequenceDaDbDc)
         {

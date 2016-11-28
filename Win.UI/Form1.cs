@@ -29,7 +29,7 @@ namespace Win.UI
             _mainMatrixDic.Add("5", new List<int>() { 3, 5, 2 });
 
             var algoritm = new Algoritm(_mainMatrixDic);
-            var optimalSequence = algoritm.GetOptimalResultSequences();
+            var answerModel = algoritm.GetOptimalResultSequences();
         }
     }
 }
