@@ -16,7 +16,6 @@ namespace Service
             _mainMatrixDic = mainMatrixDic;
         }
 
-
         public Tuple<AlgoritmModel,List<List<string>>> GetOptimalResultSequences()
         {
             var optimalSequence = new List<string>();
