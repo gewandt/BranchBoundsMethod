@@ -1,19 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
-using System.Drawing;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Forms;
 using Service;
 
 namespace Win.UI
 {
-    public partial class Form1 : Form
+    public partial class FormAlg : Form
     {
-        public Form1()
+        public FormAlg()
         {
             InitializeComponent();
         }
@@ -30,6 +24,13 @@ namespace Win.UI
 
             var algoritm = new Algoritm(_mainMatrixDic);
             var optimalSequence = algoritm.GetOptimalResultSequences();
+        }
+
+        private void buttonGenerateData_Click(object sender, EventArgs e)
+        {
+            var count = int.Parse(numericUpDownCount.Text);
+            Initializer.InitDataGridColumns(dataGridViewData, count);
+            Initializer.InitDataGridRows(dataGridViewData);
         }
     }
 }
